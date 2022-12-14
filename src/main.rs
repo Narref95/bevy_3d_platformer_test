@@ -1,14 +1,17 @@
 use bevy::{prelude::*, render::settings::{WgpuSettings, WgpuFeatures}, diagnostic::{LogDiagnosticsPlugin, FrameTimeDiagnosticsPlugin}};
+use bevy_rapier3d::prelude::*;
 use bevy_editor_pls::EditorPlugin;
 use camera::CameraPlugin;
 use gamepad::{GamepadControllerPlugin, Inputs};
+use keyboard::KeyboardControllerPlugin;
 use player::PlayerPlugin;
 
 mod camera;
 mod gamepad;
+mod keyboard;
 mod player;
 
-pub const HEIGHT: f32 = 720.0;
+pub const HEIGHT: f32 = 1080.0;
 pub const RATIO: f32 = 16. / 9.;
 
 fn main() {
@@ -21,7 +24,7 @@ fn main() {
             width: HEIGHT * RATIO,
             height: HEIGHT,
             title: "Fall Guys xd".to_string(),
-            resizable: true,
+            position: WindowPosition::Centered,
             ..default()
         },
         ..default()
@@ -37,14 +40,16 @@ fn main() {
     .add_plugin(EditorPlugin)
     .add_plugin(PlayerPlugin)
     .add_plugin(CameraPlugin)
-    .add_plugin(GamepadControllerPlugin)
+    // .add_plugin(GamepadControllerPlugin)
+    .add_plugin(KeyboardControllerPlugin)
+    .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
+    .add_plugin(RapierDebugRenderPlugin::default())
     .add_plugin(LogDiagnosticsPlugin::default())
     .add_plugin(FrameTimeDiagnosticsPlugin::default())
     .add_startup_system(setup)
     .run();
 }
 
-/// set up a simple 3D scene
 fn setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -55,7 +60,15 @@ fn setup(
         mesh: meshes.add(Mesh::from(shape::Plane { size: 25.0 })),
         material: materials.add(Color::rgb(0.3, 0.5, 0.3).into()),
         ..default()
-    });
+    }).insert(Collider::cuboid(12.5, 0.1, 12.5));
+
+    // plane
+    commands.spawn(PbrBundle {
+        mesh: meshes.add(Mesh::from(shape::Plane { size: 25.0 })),
+        material: materials.add(Color::rgb(0.3, 0.5, 0.3).into()),
+        transform: Transform::from_xyz(20.0, 1.0, 0.0).with_rotation(Quat::from_rotation_z(0.15)),
+        ..default()
+    }).insert(Collider::cuboid(12.5, 0.1, 12.5));
 
     // light
     commands.spawn(PointLightBundle {
