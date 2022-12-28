@@ -2,6 +2,7 @@ use bevy::{prelude::*, render::settings::{WgpuSettings, WgpuFeatures}, diagnosti
 use bevy_rapier3d::prelude::*;
 use bevy_editor_pls::EditorPlugin;
 use camera::CameraPlugin;
+use debug_mode::DebugModePlugin;
 use gamepad::{GamepadControllerPlugin, Inputs};
 use keyboard::KeyboardControllerPlugin;
 use player::PlayerPlugin;
@@ -10,8 +11,10 @@ mod camera;
 mod gamepad;
 mod keyboard;
 mod player;
+mod character_controller;
+mod debug_mode;
 
-pub const HEIGHT: f32 = 1080.0;
+pub const HEIGHT: f32 = 720.0;
 pub const RATIO: f32 = 16. / 9.;
 
 fn main() {
@@ -23,7 +26,7 @@ fn main() {
         window: WindowDescriptor {
             width: HEIGHT * RATIO,
             height: HEIGHT,
-            title: "Fall Guys xd".to_string(),
+            title: "Stinky Guys".to_string(),
             position: WindowPosition::Centered,
             ..default()
         },
@@ -46,6 +49,7 @@ fn main() {
     .add_plugin(RapierDebugRenderPlugin::default())
     .add_plugin(LogDiagnosticsPlugin::default())
     .add_plugin(FrameTimeDiagnosticsPlugin::default())
+    .add_plugin(DebugModePlugin)
     .add_startup_system(setup)
     .run();
 }
@@ -59,16 +63,19 @@ fn setup(
     commands.spawn(PbrBundle {
         mesh: meshes.add(Mesh::from(shape::Plane { size: 25.0 })),
         material: materials.add(Color::rgb(0.3, 0.5, 0.3).into()),
+        transform: Transform::from_xyz(0.0, 0.0, 0.0),
         ..default()
-    }).insert(Collider::cuboid(12.5, 0.1, 12.5));
+    }).insert(Collider::cuboid(12.5, 0.1, 12.5))
+    .insert(CollisionGroups::new(Group::GROUP_1, Group::GROUP_10));
 
     // plane
     commands.spawn(PbrBundle {
         mesh: meshes.add(Mesh::from(shape::Plane { size: 25.0 })),
         material: materials.add(Color::rgb(0.3, 0.5, 0.3).into()),
-        transform: Transform::from_xyz(20.0, 1.0, 0.0).with_rotation(Quat::from_rotation_z(0.15)),
+        transform: Transform::from_xyz(20.0, 0.0, 0.0).with_rotation(Quat::from_rotation_z(0.15)),
         ..default()
-    }).insert(Collider::cuboid(12.5, 0.1, 12.5));
+    }).insert(Collider::cuboid(12.5, 0.1, 12.5))
+    .insert(CollisionGroups::new(Group::GROUP_1, Group::GROUP_10));
 
     // light
     commands.spawn(PointLightBundle {

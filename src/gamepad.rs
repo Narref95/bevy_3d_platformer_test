@@ -11,7 +11,9 @@ pub struct Inputs {
     pub player_movement: Vec2,
     // Camera movement
     pub camera_movement: Vec2,
-    pub camera_angle: f32
+    pub camera_angle: f32,
+    pub jump_button: bool,
+    pub dash_button: bool,
 }
 
 impl Inputs {
@@ -19,7 +21,9 @@ impl Inputs {
         Self {
             camera_movement: Vec2::default(),
             player_movement: Vec2::default(),
-            camera_angle: 0.
+            camera_angle: 0.,
+            jump_button: false,
+            dash_button: false
         }
     }
 }

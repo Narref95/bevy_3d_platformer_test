@@ -16,6 +16,7 @@ fn keyboard_mouse_connections(
     mut motion_evr: EventReader<MouseMotion>,
     inputs: Res<Inputs>
 ) {
+    let mut new_inputs = inputs.clone();
     let mut horizontal = 0.;
     let mut vertical = 0.;
 
@@ -32,7 +33,17 @@ fn keyboard_mouse_connections(
         vertical = 1.;
     }
 
-    let mut new_inputs = inputs.clone();
+    new_inputs.jump_button = false;
+    if kb.pressed(KeyCode::Space) {
+        // println!("Jump");
+        new_inputs.jump_button = true;
+    }
+
+    new_inputs.dash_button = false;
+    if kb.pressed(KeyCode::LShift) {
+        new_inputs.dash_button = true;
+    }
+
     new_inputs.player_movement = Vec2::new(vertical, horizontal);
 
     if motion_evr.is_empty() {
@@ -46,4 +57,3 @@ fn keyboard_mouse_connections(
     commands.remove_resource::<Inputs>();
     commands.insert_resource(new_inputs);
 }
-
