@@ -32,7 +32,7 @@ fn infotext_system(mut commands: Commands, asset_server: Res<AssetServer>) {
                 },
             ),
             TextSection::new(
-                "\nIs jumping:",
+                "\nIs jumping: ",
                 TextStyle {
                     font: font.clone(),
                     font_size: 20.0,
@@ -48,7 +48,7 @@ fn infotext_system(mut commands: Commands, asset_server: Res<AssetServer>) {
                 },
             ),
             TextSection::new(
-                "\nIs grounded:",
+                "\nIs grounded: ",
                 TextStyle {
                     font: font.clone(),
                     font_size: 20.0,
@@ -61,6 +61,38 @@ fn infotext_system(mut commands: Commands, asset_server: Res<AssetServer>) {
                     font: font.clone(),
                     font_size: 20.0,
                     color: Color::RED,
+                },
+            ),
+            TextSection::new(
+                "\nIs dashing: ",
+                TextStyle {
+                    font: font.clone(),
+                    font_size: 20.0,
+                    color: Color::WHITE,
+                },
+            ),
+            TextSection::new(
+                "false",
+                TextStyle {
+                    font: font.clone(),
+                    font_size: 20.0,
+                    color: Color::RED,
+                },
+            ),
+            TextSection::new(
+                "\nDashes: 0",
+                TextStyle {
+                    font: font.clone(),
+                    font_size: 20.0,
+                    color: Color::WHITE,
+                },
+            ),
+            TextSection::new(
+                "\nLast dash time: 0",
+                TextStyle {
+                    font: font.clone(),
+                    font_size: 20.0,
+                    color: Color::WHITE,
                 },
             ),
         ])
@@ -137,6 +169,10 @@ fn update_player_text(
             text.sections[2].style.color = if player.is_jumping { Color::GREEN } else { Color::RED };
             text.sections[4].value = player.is_grounded.to_string();
             text.sections[4].style.color = if player.is_grounded { Color::GREEN } else { Color::RED };
+            text.sections[6].value = player.is_dashing.to_string();
+            text.sections[6].style.color = if player.is_dashing { Color::GREEN } else { Color::RED };
+            text.sections[7].value = format!("\nDashes: {}", player.dashes);
+            text.sections[8].value = format!("\nLast dash time: {}", player.last_dash_time);
         }
     }
 }

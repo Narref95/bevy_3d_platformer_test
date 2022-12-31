@@ -78,6 +78,7 @@ fn gamepad_movement(
     mut commands: Commands,
     axes: Res<Axis<GamepadAxis>>,
     my_gamepad: Option<Res<MyGamepad>>,
+    buttons: Res<Input<GamepadButton>>,
     inputs: Res<Inputs>
 ) {
     let gamepad = if let Some(gp) = my_gamepad {
@@ -101,7 +102,25 @@ fn gamepad_movement(
         gamepad, axis_type: GamepadAxisType::RightStickY
     };
 
+    // In a real game, the buttons would be configurable, but here we hardcode them
+    let jump_button = GamepadButton {
+        gamepad, button_type: GamepadButtonType::South
+    };
+    let dash_button = GamepadButton {
+        gamepad, button_type: GamepadButtonType::West
+    };
+
     let mut new_inputs = inputs.clone();
+
+    new_inputs.jump_button = false;
+    if buttons.pressed(jump_button) {
+        new_inputs.jump_button = true;
+    }
+
+    new_inputs.dash_button = false;
+    if buttons.pressed(dash_button) {
+        new_inputs.dash_button = true;
+    }
 
     if let (Some(x), Some(z)) = (axes.get(axis_lx), axes.get(axis_ly)) {
         new_inputs.player_movement = Vec2::new(x, z);

@@ -4,7 +4,7 @@ use bevy_editor_pls::EditorPlugin;
 use camera::CameraPlugin;
 use debug_mode::DebugModePlugin;
 use gamepad::{GamepadControllerPlugin, Inputs};
-use keyboard::KeyboardControllerPlugin;
+// use keyboard::KeyboardControllerPlugin;
 use player::PlayerPlugin;
 
 mod camera;
@@ -43,11 +43,11 @@ fn main() {
     .add_plugin(EditorPlugin)
     .add_plugin(PlayerPlugin)
     .add_plugin(CameraPlugin)
-    // .add_plugin(GamepadControllerPlugin)
-    .add_plugin(KeyboardControllerPlugin)
+    .add_plugin(GamepadControllerPlugin)
+    // .add_plugin(KeyboardControllerPlugin)
     .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
-    .add_plugin(RapierDebugRenderPlugin::default())
-    .add_plugin(LogDiagnosticsPlugin::default())
+    // .add_plugin(RapierDebugRenderPlugin::default())
+    // .add_plugin(LogDiagnosticsPlugin::default())
     .add_plugin(FrameTimeDiagnosticsPlugin::default())
     .add_plugin(DebugModePlugin)
     .add_startup_system(setup)

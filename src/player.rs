@@ -9,11 +9,15 @@ pub struct PlayerPlugin;
 pub struct Player {
     pub is_jumping: bool,
     pub is_grounded: bool,
-    pub dashes: i8
+    pub is_dashing: bool,
+    pub dashes: i8,
+    pub last_dash_time: f32
 }
 
 const PLAYER_SPEED: f32 = 10.;
-const JUMP_HEIGHT: f32 = 9.;
+const JUMP_HEIGHT: f32 = 4.5;
+const DASH_IMPULSE: f32 = 15.;
+const DASH_TIME: f32 = 0.33;
 
 #[derive(Component)]
 pub struct PlayerMovementIndicator;
@@ -24,6 +28,7 @@ impl Plugin for PlayerPlugin {
         .add_startup_system(player_spawn_system)
         .add_system(player_movement_system)
         .add_system(player_jump_system)
+        .add_system(player_dash_system)
         .add_system(check_is_grounded);
     }
 }
@@ -46,7 +51,9 @@ fn player_spawn_system(
     }).insert(Player {
         is_jumping: false,
         is_grounded: false,
-        dashes: 0
+        is_dashing: false,
+        dashes: 0,
+        last_dash_time: -1.
     })
     .insert(CameraFollow)
     .insert(RigidBody::Dynamic)
@@ -60,10 +67,12 @@ fn player_spawn_system(
     })
     .with_children(|children| {
         children.spawn(PbrBundle::default())
-            .insert(Collider::ball(0.5))
-            // Position the collider relative to the rigid-body.
-            .insert(TransformBundle::from(Transform::from_xyz(0.0, 1.1, 0.0)))
+            .insert(Collider::ball(0.25))
+            .insert(TransformBundle::from(Transform::from_xyz(0.0, 0.5, 0.0)))
             .insert(CollisionGroups::new(bevy_rapier3d::geometry::Group::GROUP_10, bevy_rapier3d::geometry::Group::GROUP_1));
+        children.spawn(PbrBundle::default())
+            .insert(Collider::cuboid(0.15, 0.5, 0.15))
+            .insert(TransformBundle::from(Transform::from_xyz(0.0, 1.3, 0.0)));
     })
     .insert(GravityScale(2.))
     .insert(LockedAxes::ROTATION_LOCKED)
@@ -166,14 +175,38 @@ fn player_jump_system(
     }
 }
 
+fn player_dash_system(
+    time: Res<Time>,
+    mut player_query: Query<(&Transform, &mut ExternalImpulse, &mut Player), With<Player>>,
+    inputs: Res<Inputs>
+) {
+    for (transform, mut impulse, mut player) in player_query.iter_mut() {
+        if inputs.dash_button && !player.is_dashing {
+            if player.dashes < 120 {
+                println!("Dashing");
+                player.is_dashing = true;
+                player.dashes = player.dashes + 1;
+                impulse.impulse = transform.back() * DASH_IMPULSE;
+                // player.is_jumping = true;
+                player.last_dash_time = time.elapsed_seconds();
+            }
+        }
+        if player.last_dash_time != -1. && player.last_dash_time + DASH_TIME < time.elapsed_seconds() {
+            impulse.impulse = Vec3::ZERO;
+            player.last_dash_time = -1.;
+            player.is_dashing = false;
+        }
+    }
+}
+
 fn player_movement_system(
-    mut player_query: Query<(&mut Transform, &mut Velocity), With<Player>>,
+    mut player_query: Query<(&Player, &mut Transform, &mut Velocity), With<Player>>,
     mut target_query: Query<&mut Transform, (With<PlayerMovementIndicator>, Without<Player>, Without<MainCamera>)>,
     mut camera_query: Query<&mut Transform, (With<MainCamera>, Without<Player>, Without<PlayerMovementIndicator>)>,
     inputs: Res<Inputs>
 ) {
         if let Ok(mut target_transform) = target_query.get_single_mut() {
-            for (mut player_transform, mut player_vel) in player_query.iter_mut() {
+            for (player, mut player_transform, mut player_vel) in player_query.iter_mut() {
                 if let Ok(camera_transform) = camera_query.get_single_mut() {
                     let move_right = inputs.player_movement.x * PLAYER_SPEED * camera_transform.right();
                     let move_forward = inputs.player_movement.y * PLAYER_SPEED * camera_transform.forward();
@@ -181,11 +214,15 @@ fn player_movement_system(
                     let mut look_final_pos = player_transform.translation + (-move_right / 5. + -move_forward / 5.);
                     look_final_pos.y = player_transform.translation.y;
                     target_final_pos.y = player_transform.translation.y;
-                    player_vel.linvel = (move_right + move_forward) * Vec3::new(1.,0.,1.) + Vec3::new(0., player_vel.linvel.y,0.);
                     
                     target_transform.translation = target_final_pos;
-                    if inputs.player_movement.x != 0. || inputs.player_movement.y != 0. {
-                        player_transform.look_at(look_final_pos, Vec3::Y);                    
+                    if !player.is_dashing && (inputs.player_movement.x != 0. || inputs.player_movement.y != 0.) {
+                        player_vel.linvel = (move_right + move_forward) * Vec3::new(1.,0.,1.) + Vec3::new(0., player_vel.linvel.y,0.);
+                        player_transform.look_at(look_final_pos, Vec3::Y);
+                    }
+
+                    if player_transform.translation.y <= -20. {
+                        player_transform.translation = Vec3::new(0.,0.,0.);
                     }
                 }
             }
@@ -199,14 +236,16 @@ fn check_is_grounded(
     for (mut player, player_transform) in player_query.iter_mut() {
         let ray_pos = player_transform.translation;
         let ray_dir = Vec3::new(0., -1., 0.);
-        let max_toi = 0.1;
+        let max_toi = 0.05;
         let solid = true;
         let filter = QueryFilter::default().groups(InteractionGroups::new(Group::GROUP_10, Group::GROUP_1));
     
+        player.is_grounded = false;
         rapier_context.intersections_with_ray(
         ray_pos, ray_dir, max_toi, solid, filter,
         |_entity, _intersection| {
             player.is_jumping = false;
+            player.is_grounded = true;
             true // Return `false` instead if we want to stop searching for other hits.
         });
     }

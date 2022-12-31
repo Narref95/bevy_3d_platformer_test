@@ -6,7 +6,7 @@ pub struct CharacterControllerPlugin;
 pub struct CharacterController;
 
 impl Plugin for CharacterControllerPlugin {
-    fn build(&self, app: &mut App) {
+    fn build(&self, _app: &mut App) {
 
     }
 }
