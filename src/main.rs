@@ -1,4 +1,4 @@
-use bevy::{prelude::*, render::settings::{WgpuSettings, WgpuFeatures}, diagnostic::{LogDiagnosticsPlugin, FrameTimeDiagnosticsPlugin}};
+use bevy::{prelude::*, render::settings::{WgpuSettings, WgpuFeatures}, diagnostic::{LogDiagnosticsPlugin, FrameTimeDiagnosticsPlugin}, window::PresentMode};
 use bevy_rapier3d::prelude::*;
 use bevy_editor_pls::EditorPlugin;
 use camera::CameraPlugin;
@@ -28,11 +28,13 @@ fn main() {
             height: HEIGHT,
             title: "Stinky Guys".to_string(),
             position: WindowPosition::Centered,
+            present_mode: PresentMode::AutoVsync,
             ..default()
         },
         ..default()
     };
     App::new()
+    .register_type::<Group>()
     .insert_resource(wpu_settings)
     .insert_resource(AmbientLight {
         color: Color::rgb(0.5, 0.5, 0.5),
@@ -58,6 +60,7 @@ fn setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    asset_server: Res<AssetServer>,
 ) {
     // plane
     commands.spawn(PbrBundle {
@@ -95,4 +98,9 @@ fn setup(
         transform: Transform::from_xyz(10.0, 0.75, 0.0),
         ..default()
     });
+
+    // commands.spawn(DynamicSceneBundle{
+    //     scene: asset_server.load("scenes/scene.scn.ron"),
+    //     ..default()
+    // });
 }

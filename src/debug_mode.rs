@@ -172,7 +172,7 @@ fn update_player_text(
             text.sections[6].value = player.is_dashing.to_string();
             text.sections[6].style.color = if player.is_dashing { Color::GREEN } else { Color::RED };
             text.sections[7].value = format!("\nDashes: {}", player.dashes);
-            text.sections[8].value = format!("\nLast dash time: {}", player.last_dash_time);
+            text.sections[8].value = format!("\nJumps without ground: {}", player.jumps_without_ground);
         }
     }
 }
