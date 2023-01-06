@@ -1,3 +1,4 @@
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 use bevy::{prelude::*, render::settings::{WgpuSettings, WgpuFeatures}, diagnostic::{LogDiagnosticsPlugin, FrameTimeDiagnosticsPlugin}, window::PresentMode};
 use bevy_rapier3d::prelude::*;
 use bevy_editor_pls::EditorPlugin;

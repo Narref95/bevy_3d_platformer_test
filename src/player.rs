@@ -227,7 +227,7 @@ fn check_is_grounded(
     for (mut player, player_transform) in player_query.iter_mut() {
         let ray_pos = player_transform.translation;
         let ray_dir = Vec3::new(0., -1., 0.);
-        let max_toi = 1.4;
+        let max_toi = 1.5;
         let solid = true;
         let filter = QueryFilter::default().groups(InteractionGroups::new(Group::GROUP_10, Group::GROUP_1));
     
