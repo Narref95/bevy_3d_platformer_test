@@ -1,11 +1,11 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-use bevy::{prelude::*, render::settings::{WgpuSettings, WgpuFeatures}, diagnostic::{LogDiagnosticsPlugin, FrameTimeDiagnosticsPlugin}, window::PresentMode};
+use bevy::{prelude::*, render::settings::{WgpuSettings, WgpuFeatures}, diagnostic::{FrameTimeDiagnosticsPlugin}, window::PresentMode};
 use bevy_rapier3d::prelude::*;
 use bevy_editor_pls::EditorPlugin;
 use camera::CameraPlugin;
 use debug_mode::DebugModePlugin;
 use gamepad::{GamepadControllerPlugin, Inputs};
-// use keyboard::KeyboardControllerPlugin;
+use keyboard::KeyboardControllerPlugin;
 use player::PlayerPlugin;
 
 mod camera;
@@ -17,6 +17,8 @@ mod debug_mode;
 
 pub const HEIGHT: f32 = 720.0;
 pub const RATIO: f32 = 16. / 9.;
+
+const GROUND_COLLISION: CollisionGroups = CollisionGroups::new(Group::GROUP_1, Group::GROUP_10);
 
 fn main() {
     let wpu_settings: WgpuSettings = WgpuSettings {
@@ -46,10 +48,10 @@ fn main() {
     .add_plugin(EditorPlugin)
     .add_plugin(PlayerPlugin)
     .add_plugin(CameraPlugin)
-    .add_plugin(GamepadControllerPlugin)
-    // .add_plugin(KeyboardControllerPlugin)
+    //.add_plugin(GamepadControllerPlugin)
+    .add_plugin(KeyboardControllerPlugin)
     .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
-    // .add_plugin(RapierDebugRenderPlugin::default())
+    .add_plugin(RapierDebugRenderPlugin::default())
     // .add_plugin(LogDiagnosticsPlugin::default())
     .add_plugin(FrameTimeDiagnosticsPlugin::default())
     .add_plugin(DebugModePlugin)
@@ -70,7 +72,7 @@ fn setup(
         transform: Transform::from_xyz(0.0, 0.0, 0.0),
         ..default()
     }).insert(Collider::cuboid(12.5, 0.1, 12.5))
-    .insert(CollisionGroups::new(Group::GROUP_1, Group::GROUP_10));
+    .insert(GROUND_COLLISION);
 
     // plane
     commands.spawn(PbrBundle {
@@ -79,7 +81,23 @@ fn setup(
         transform: Transform::from_xyz(20.0, 0.0, 0.0).with_rotation(Quat::from_rotation_z(0.15)),
         ..default()
     }).insert(Collider::cuboid(12.5, 0.1, 12.5))
-    .insert(CollisionGroups::new(Group::GROUP_1, Group::GROUP_10));
+    .insert(GROUND_COLLISION);
+
+    commands.spawn(PbrBundle {
+        mesh: meshes.add(Mesh::from(shape::Cube { size: 25. })),
+        material: materials.add(Color::rgb(0.3, 0.5, 0.3).into()),
+        transform: Transform::from_xyz(50.0, -10.5, 15.0),
+        ..default()
+    }).insert(Collider::cuboid(12.5, 12.5, 12.5))
+    .insert(GROUND_COLLISION);
+
+    commands.spawn(PbrBundle {
+        mesh: meshes.add(Mesh::from(shape::Cube { size: 25. })),
+        material: materials.add(Color::rgb(0.3, 0.5, 0.3).into()),
+        transform: Transform::from_xyz(50.0, -10.5, -35.0),
+        ..default()
+    }).insert(Collider::cuboid(12.5, 12.5, 12.5))
+    .insert(GROUND_COLLISION);
 
     // light
     commands.spawn(PointLightBundle {
@@ -100,8 +118,8 @@ fn setup(
         ..default()
     });
 
-    // commands.spawn(DynamicSceneBundle{
-    //     scene: asset_server.load("scenes/scene.scn.ron"),
-    //     ..default()
-    // });
+    commands.spawn(DynamicSceneBundle{
+        scene: asset_server.load("scenes/scene.scn.ron"),
+        ..default()
+    });
 }

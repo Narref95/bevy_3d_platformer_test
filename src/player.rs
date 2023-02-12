@@ -30,8 +30,8 @@ impl Player {
 
 const PLAYER_SPEED: f32 = 10.;
 const JUMP_HEIGHT: f32 = 7.5;
-const DASH_IMPULSE: f32 = 15.;
-const DASH_TIME: f32 = 0.33;
+const DASH_IMPULSE: f32 = 5.5;
+const DASH_TIME: f32 = 0.1;
 
 #[derive(Component)]
 pub struct PlayerMovementIndicator;
@@ -51,6 +51,9 @@ impl Plugin for PlayerPlugin {
     }
 }
 
+const PLAYER_MODEL: &str = "models\\stylized_low_poly_animated_character.glb";
+const PLAYER_MODEL_SCENE: &str = "#Scene0";
+
 fn player_spawn_system(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -59,11 +62,11 @@ fn player_spawn_system(
 ) {
     // Insert a resource with the current scene information
     commands.insert_resource(Animations(vec![
-        ass.load("models\\stylized_low_poly_animated_character.glb#Animation0"),
-        ass.load("models\\stylized_low_poly_animated_character.glb#Animation1"),
-        ass.load("models\\stylized_low_poly_animated_character.glb#Animation2"),
+        ass.load(PLAYER_MODEL.to_string() + "#Animation0"),
+        ass.load(PLAYER_MODEL.to_string() + "#Animation1"),
+        ass.load(PLAYER_MODEL.to_string() + "#Animation2"),
     ]));
-    let my_gltf: Handle<Scene> = ass.load("models\\stylized_low_poly_animated_character.glb#Scene0");
+    let my_gltf: Handle<Scene> = ass.load(PLAYER_MODEL.to_string() + PLAYER_MODEL_SCENE);
 
     // to position our 3d model, simply use the Transform
     // in the SceneBundle
@@ -155,14 +158,14 @@ fn player_dash_system(
 ) {
     for (transform, mut impulse, mut player) in player_query.iter_mut() {
         if inputs.dash_button && !player.is_dashing {
-            if player.dashes < 120 {
+            // if player.dashes < 120 {
                 println!("Dashing");
                 player.is_dashing = true;
                 player.dashes = player.dashes + 1;
                 impulse.impulse = transform.back() * DASH_IMPULSE;
                 // player.is_jumping = true;
                 player.last_dash_time = time.elapsed_seconds();
-            }
+            // }
         }
         if player.last_dash_time != -1. && player.last_dash_time + DASH_TIME < time.elapsed_seconds() {
             impulse.impulse = Vec3::ZERO;
